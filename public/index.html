@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Borsa Performans Haritası</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/light.css">
+  <!-- Nunito Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white font-nunito">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <div class="w-72 bg-gray-900 border-r border-gray-100/20 p-4 flex flex-col h-screen">
+      <h2 class="text-xl font-bold mb-4">Borsa<span class="text-blue-600">Harita</span></h2>
+      
+      <!-- Navigasyon Menüsü -->
+      <div class="mb-6">
+        <div class="flex justify-between items-center text-sm border-b border-gray-700 pb-2 mb-2">
+          <span class="text-gray-400">Görünümler</span>
+        </div>
+        <div class="space-y-1">
+          <button id="singleStockBtn" class="w-full flex items-center p-2 rounded-lg hover:bg-gray-800 transition-colors text-left text-white">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+            </svg>
+            <span>Hisse Analizi</span>
+          </button>
+          <button id="monthlyAnalysisBtn" class="w-full flex items-center p-2 rounded-lg hover:bg-gray-800 transition-colors text-left text-white">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <span>Aylık Analiz</span>
+          </button>
+          <button id="recommendationsBtn" class="w-full flex items-center p-2 rounded-lg hover:bg-gray-800 transition-colors text-left text-white">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.519 4.674c.3.921-.755 1.688-1.54 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.784.57-1.838-.197-1.539-1.118l1.519-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+            </svg>
+            <span>Öneriler</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Arama kutusu -->
+      <div class="relative mb-4">
+        <input type="text" id="stockSearch" placeholder="Hisse ara..." class="w-full bg-gray-700 text-white px-3 py-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all placeholder-blue-300/70 text-blue-300/70">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="w-5 h-5 text-blue-300/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        <button id="searchClearBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center hidden">
+          <svg class="w-5 h-5 text-gray-400 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Hisse listesi -->
+      <div id="stockList" class="flex-1 overflow-y-auto pr-1 space-y-1 custom-scrollbar">
+        <!-- Bu alan dinamik olarak doldurulacak -->
+      </div>
+    </div>
+    
+    <!-- Ana içerik -->
+    <div class="flex-1 p-6 overflow-y-auto">
+      <!-- Yükleme göstergesi -->
+      <div id="loadingSpinner" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 hidden">
+        <div class="flex items-center bg-gray-900 p-5 rounded-lg shadow-lg">
+          <svg class="animate-spin h-8 w-8 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-white">Veriler yükleniyor...</span>
+        </div>
+      </div>
+      
+      <!-- Varsayılan görünüm -->
+      <div id="defaultView">
+        <h1 class="text-2xl font-bold mb-6">Borsa İstanbul Hisse Performans Analizi</h1>
+        
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+          <h2 class="text-lg font-semibold mb-4">Analiz Kriterleri</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Hisse senedi seçimi -->
+            <div>
+              <label for="stockSymbol" class="block text-sm font-medium text-gray-300 mb-2">Hisse Senedi</label>
+              <select id="stockSymbol" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 appearance-none">
+                <option value="">-- Hisse Senedi Seçin --</option>
+                <!-- Bu alan dinamik olarak doldurulacak -->
+              </select>
+            </div>
+            
+            <!-- Başlangıç tarihi -->
+            <div>
+              <label for="startDate" class="block text-sm font-medium text-gray-300 mb-2">Başlangıç Tarihi</label>
+              <input type="text" id="startDate" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <!-- Bitiş tarihi -->
+            <div>
+              <label for="endDate" class="block text-sm font-medium text-gray-300 mb-2">Bitiş Tarihi</label>
+              <input type="text" id="endDate" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+          
+          <!-- Analiz butonu -->
+          <div class="mt-4 flex justify-center">
+            <button id="analyzeBtn" class="mt-4 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium py-3 px-4 rounded-lg shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+              Performans Analizi Yap
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sonuçlar konteyner -->
+      <div id="resultsContainer" class="hidden transition-opacity duration-300 ease-in-out">
+        <div class="flex items-center mb-4">
+          <h2 id="stockTitle" class="text-xl font-bold">Hisse Senedi Performans Analizi</h2>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <!-- En Yüksek Artış -->
+          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-black">
+            <div class="text-sm font-medium text-green-800 mb-1">En Yüksek Artış</div>
+            <div id="highestGain" class="text-4xl font-bold text-green-700">+0.00%</div>
+            <div id="highestGainMonth" class="text-sm text-green-600">-</div>
+          </div>
+          
+          <!-- En Yüksek Düşüş -->
+          <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-black">
+            <div class="text-sm font-medium text-red-800 mb-1">En Yüksek Düşüş</div>
+            <div id="highestLoss" class="text-4xl font-bold text-red-700">-0.00%</div>
+            <div id="highestLossMonth" class="text-sm text-red-600">-</div>
+          </div>
+          
+          <!-- Ortalama Değişim -->
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-black">
+            <div class="text-sm font-medium text-blue-800 mb-1">Ortalama Değişim</div>
+            <div id="averageChange" class="text-4xl font-bold text-blue-700">0.00%</div>
+            <div class="text-sm text-blue-600">Tüm dönem</div>
+          </div>
+        </div>
+        
+        <!-- Grafik bölümü -->
+        <div class="bg-white rounded-lg p-4 mb-6">
+          <canvas id="performanceChart" class="w-full" height="300"></canvas>
+        </div>
+        
+        <!-- Takvim görünümü -->
+        <div class="overflow-x-auto">
+          <div id="calendarView"></div>
+        </div>
+      </div>
+      
+      <!-- Detay görünümü -->
+      <div id="stockDetailView" class="hidden">
+        <div class="flex items-center mb-4">
+          <button id="backToMainBtn" class="mr-2 p-1 rounded-full hover:bg-gray-800 transition-colors">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+          </button>
+          <h2 id="detailStockTitle" class="text-xl font-bold">Hisse Detayı</h2>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <!-- En Yüksek Artış -->
+          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-black">
+            <div class="text-sm font-medium text-green-800 mb-1">En Yüksek Artış</div>
+            <div id="detailHighestGain" class="text-4xl font-bold text-green-700">+0.00%</div>
+            <div id="detailHighestGainMonth" class="text-sm text-green-600">-</div>
+          </div>
+          
+          <!-- En Yüksek Düşüş -->
+          <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-black">
+            <div class="text-sm font-medium text-red-800 mb-1">En Yüksek Düşüş</div>
+            <div id="detailHighestLoss" class="text-4xl font-bold text-red-700">-0.00%</div>
+            <div id="detailHighestLossMonth" class="text-sm text-red-600">-</div>
+          </div>
+          
+          <!-- Ortalama Değişim -->
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-black">
+            <div class="text-sm font-medium text-blue-800 mb-1">Ortalama Değişim</div>
+            <div id="detailAverageChange" class="text-4xl font-bold text-blue-700">0.00%</div>
+            <div class="text-sm text-blue-600">Tüm dönem</div>
+          </div>
+        </div>
+        
+        <!-- Grafik bölümü -->
+        <div class="bg-white rounded-lg p-4 mb-6">
+          <canvas id="detailPerformanceChart" class="w-full" height="300"></canvas>
+        </div>
+        
+        <!-- Takvim görünümü -->
+        <div class="overflow-x-auto">
+          <div id="detailCalendarView"></div>
+        </div>
+      </div>
+      
+      <!-- Aylık Analiz Görünümü - YENİ -->
+      <div id="monthlyAnalysisView" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold">Aylık Hisse Performans Analizi</h2>
+          <button id="runMonthlyAnalysisBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            Analizi Başlat
+          </button>
+        </div>
+        
+        <div id="monthlyAnalysisDescription" class="bg-gray-800 p-5 rounded-lg mb-8 text-gray-300 text-sm leading-relaxed">
+          <p>Bu analiz, tüm hisse senetlerinin aylık performansını tarar ve hangi ayda hangi hisselerin <strong>sürekli olarak artış gösterdiğini</strong> tespit eder.</p>
+          <p class="mt-2">Yalnızca son senelerde tutarlı şekilde artış gösteren hisseler önerilecektir. Bu analiz, kısa vadeli alım-satım stratejileri için bir fikir verebilir.</p>
+          <p class="mt-2 text-yellow-400"><strong>Not:</strong> Bu analiz biraz zaman alabilir, lütfen başlattıktan sonra sayfayı kapatmayın veya değiştirmeyin.</p>
+        </div>
+        
+        <!-- Ay Seçimi -->
+        <div class="bg-gray-800 rounded-lg p-5 mb-8">
+          <h3 class="text-lg font-semibold mb-4">Hangi Ay için Analiz Yapmak İstersiniz?</h3>
+          <div class="flex gap-2">
+            <button data-month="1" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Ocak</button>
+            <button data-month="2" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Şubat</button>
+            <button data-month="3" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Mart</button>
+            <button data-month="4" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Nisan</button>
+            <button data-month="5" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Mayıs</button>
+            <button data-month="6" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Haziran</button>
+            <button data-month="7" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Temmuz</button>
+            <button data-month="8" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Ağustos</button>
+            <button data-month="9" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Eylül</button>
+            <button data-month="10" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Ekim</button>
+            <button data-month="11" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Kasım</button>
+            <button data-month="12" class="month-button p-3 rounded-lg bg-gray-700 hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">Aralık</button>
+          </div>
+        </div>
+        
+        <!-- Sonuç Görünümü -->
+        <div id="monthlyAnalysisResults" class="hidden">
+          <div id="selectedMonthDisplay" class="text-xl font-bold mb-4 text-blue-500"></div>
+          
+          <!-- En İyi Performans Gösteren Hisseler Tablosu -->
+          <div class="mb-8">
+            <h3 class="text-lg font-semibold mb-3">En İyi Performans Gösteren Hisseler</h3>
+            <div class="bg-gray-800 rounded-lg p-2">
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead class="border-b border-gray-700">
+                    <tr>
+                      <th class="py-3 px-4 text-left text-sm font-medium text-gray-400">Sembol</th>
+                      <th class="py-3 px-4 text-left text-sm font-medium text-gray-400">Şirket</th>
+                      <th class="py-3 px-4 text-right text-sm font-medium text-gray-400">Ortalama Değişim</th>
+                    </tr>
+                  </thead>
+                  <tbody id="bestPerformersTable" class="divide-y divide-gray-700">
+                    <!-- Bu alan dinamik olarak doldurulacak -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Tutarlı İyi Performans Gösteren Hisseler Tablosu -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 flex items-center">
+              <span>İstikrarlı Yükselen Hisseler</span>
+              <span class="ml-2 text-xs bg-blue-600 text-white px-2 py-1 rounded-full">Önerilen</span>
+            </h3>
+            <div class="bg-gray-800 rounded-lg p-2">
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead class="border-b border-gray-700">
+                    <tr>
+                      <th class="py-3 px-4 text-left text-sm font-medium text-gray-400">Sembol</th>
+                      <th class="py-3 px-4 text-left text-sm font-medium text-gray-400">Şirket</th>
+                      <th class="py-3 px-4 text-right text-sm font-medium text-gray-400">Ort. Kazanç</th>
+                      <th class="py-3 px-4 text-right text-sm font-medium text-gray-400">Artış Yılları</th>
+                    </tr>
+                  </thead>
+                  <tbody id="consistentPerformersTable" class="divide-y divide-gray-700">
+                    <!-- Bu alan dinamik olarak doldurulacak -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Öneriler Görünümü - YENİ -->
+      <div id="recommendationsView" class="hidden">
+        <div class="flex items-center mb-4">
+          <h2 class="text-2xl font-bold">Gelecek Ay için Yatırım Önerileri</h2>
+        </div>
+        
+        <div class="bg-gradient-to-r from-blue-400 to-indigo-300 bg-opacity-30 p-5 rounded-lg mb-8 text-white">
+          <div class="flex items-center">
+            <svg class="w-8 h-8 mr-3 text-yellow-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+            </svg>
+            <div>
+              <h3 class="text-lg font-bold flex items-center">
+                <span id="nextMonthName">Gelecek Ay</span>
+                <span class="ml-2 text-xs bg-green-600 text-white px-2 py-1 rounded-full">Öneri</span>
+              </h3>
+              <p class="text-sm">Bu öneriler geçmiş performans verilerine dayalıdır. Alım satım kararları için profesyonel tavsiye alınmalıdır.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div id="recommendationsContainer" class="bg-gray-800 rounded-lg p-4">
+          <div id="noRecommendationsMessage" class="hidden text-center text-gray-400 py-10">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="font-medium text-lg">Henüz öneri bulunmuyor</p>
+            <p class="mt-2">Lütfen önce aylık analizi çalıştırın.</p>
+          </div>
+          
+          <div id="recommendationsList" class="space-y-4 max-w-4xl mx-auto">
+            <!-- Burası dinamik olarak doldurulacak -->
+          </div>
+        </div>
+        
+        <div class="mt-8 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
+          <h3 class="text-lg font-semibold mb-2 text-indigo-300">Nasıl Kullanılır?</h3>
+          <ul class="list-disc pl-5 space-y-1 text-gray-300 text-sm">
+            <li>Bu öneriler, hisse senetlerinin geçmiş yıllardaki dönemsel performanslarına dayalıdır.</li>
+            <li>Özellikle önerilen hisseler, <strong>art arda en fazla yükseliş yılı</strong> ve <strong>en yüksek ortalama kazanç</strong> sağlayan hisselerdir.</li>
+            <li>Daha ayrıntılı analiz için Aylık Analiz sekmesini kullanabilirsiniz.</li>
+            <li>Unutmayın: Geçmiş performans, gelecekteki performansın garantisi değildir.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- jQuery ve diğer JS kütüphaneleri -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
+  
+  <!-- Uygulama bileşenleri -->
+  <script src="../src/services/dataFetcher.js"></script>
+  <script src="../src/services/stockAnalyzer.js"></script>
+  <script src="../src/components/StockCalendar.js"></script>
+  <script src="../src/utils/dateUtils.js"></script>
+  
+  <!-- Ana uygulama script -->
+  <script src="../src/renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Özel stiller */
+.positive-change {
+  @apply text-green-600 font-bold;
+}
+
+.negative-change {
+  @apply text-red-600 font-bold;
+}
+
+.calendar-cell {
+  @apply border border-gray-300 p-2 text-center min-w-[80px];
+}
+
+.year-cell {
+  @apply font-bold bg-gray-100 sticky left-0 z-10;
+}
+
+.month-header {
+  @apply font-bold bg-gray-200 p-2 text-center;
+}
+
+.calendar-wrapper {
+  @apply relative overflow-x-auto;
+}
