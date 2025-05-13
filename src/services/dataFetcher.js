@@ -179,6 +179,62 @@ class DataFetcher {
     }
   }
 
+  // Belirli bir hisse senedi için günlük performans verilerini çeker
+  async getStockDailyPerformance(symbol, startDate, endDate) {
+    try {
+      // Not: API sınırlaması nedeniyle doğrudan mock veri kullanıyoruz
+      // Gerçek veri kullanmak için aşağıdaki satırı açabilirsiniz
+      console.log("API sınırlaması nedeniyle mock veri kullanılıyor...");
+      return this._generateDailyMockData(symbol, startDate, endDate);
+      
+      /* API aktifleştirmek için yorum satırlarını kaldırın
+      // Electron'da direkt window.api'ye erişilebilir, tarayıcıda değil
+      if (window.api) {
+        return await window.api.getStockData(symbol, startDate, endDate, 'daily');
+      } else {
+        // Yahoo Finance API kullanarak gerçek veri çekme
+        return await this._fetchYahooFinanceDailyData(symbol, startDate, endDate);
+      }
+      */
+    } catch (error) {
+      console.error(`Günlük hisse verisi alınırken hata: ${error.message}`);
+      // Hata durumunda mock veri dönelim
+      return this._generateDailyMockData(symbol, startDate, endDate);
+    }
+  }
+  
+  // Yahoo Finance URL'ini hazırla (harici tarayıcıda açmak için)
+  getYahooFinanceChartURL(symbol, startDate, endDate) {
+    // BIST sembolleri için .IS uzantısı kontrol et
+    const yahooSymbol = symbol.includes('.IS') ? symbol : `${symbol}.IS`;
+    
+    // Tarih aralıklarını Unix timestamp formatına çevir
+    const start = new Date(startDate || '2020-01-01');
+    const end = new Date(endDate || new Date());
+    const period1 = Math.floor(start.getTime() / 1000);
+    const period2 = Math.floor(end.getTime() / 1000);
+    
+    // Yahoo Finance için JWT token (önceden hazırlanmış token)
+    const chartConfig = "eyJsYXlvdXQiOnsiaW50ZXJ2YWwiOiJ3ZWVrIiwicGVyaW9kaWNpdHkiOjEsInRpbWVVbml0IjpudWxsLCJjYW5kbGVXaWR0aCI6MTcuMzcxNDI4NTcxNDI4NTcsImZsaXBwZWQiOmZhbHNlLCJ2b2x1bWVVbmRlcmxheSI6dHJ1ZSwiYWRqIjp0cnVlLCJjcm9zc2hhaXIiOnRydWUsImNoYXJ0VHlwZSI6ImNhbmRsZSIsImV4dGVuZGVkIjpmYWxzZSwibWFya2V0U2Vzc2lvbnMiOnt9LCJhZ2dyZWdhdGlvblR5cGUiOiJvaGxjIiwiY2hhcnRTY2FsZSI6ImxpbmVhciIsInN0dWRpZXMiOnsi4oCMdm9sIHVuZHLigIwiOnsidHlwZSI6InZvbCB1bmRyIiwiaW5wdXRzIjp7IlNlcmllcyI6InNlcmllcyIsImlkIjoi4oCMdm9sIHVuZHLigIwiLCJkaXNwbGF5Ijoi4oCMdm9sIHVuZHLigIwifSwib3V0cHV0cyI6eyJVcCBWb2x1bWUiOiIjMGRiZDZlZWUiLCJEb3duIFZvbHVtZSI6IiNmZjU1NDdlZSJ9LCJwYW5lbCI6ImNoYXJ0IiwicGFyYW1ldGVycyI6eyJjaGFydE5hbWUiOiJjaGFydCIsImVkaXRNb2RlIjp0cnVlLCJwYW5lbE5hbWUiOiJjaGFydCJ9LCJkaXNhYmxlZCI6ZmFsc2V9fSwicGFuZWxzIjp7ImNoYXJ0Ijp7InBlcmNlbnQiOjEsImRpc3BsYXkiOiJCSU1BUy5JUyIsImNoYXJ0TmFtZSI6ImNoYXJ0IiwiaW5kZXgiOjAsInlBeGlzIjp7Im5hbWUiOiJjaGFydCIsInBvc2l0aW9uIjpudWxsfSwieWF4aXNMSFMiOltdLCJ5YXhpc1JIUyI6WyJjaGFydCIsIuKAjHZvbCB1bmRy4oCMIl19fSwib3V0bGllcnMiOmZhbHNlLCJhbmltYXRpb24iOnRydWUsImhlYWRzVXAiOnsic3RhdGljIjp0cnVlLCJkeW5hbWljIjpmYWxzZSwiZmxvYXRpbmciOmZhbHNlfSwibGluZVdpZHRoIjoyLCJmdWxsU2NyZWVuIjp0cnVlLCJzdHJpcGVkQmFja2dyb3VuZCI6dHJ1ZSwiY29sb3IiOiIjMDA4MWYyIiwiY3Jvc3NoYWlyU3RpY2t5IjpmYWxzZSwiZG9udFNhdmVSYW5nZVRvTGF5b3V0Ijp0cnVlLCJzeW1ib2xzIjpbeyJzeW1ib2wiOiJCSU1BUy5JUyIsInN5bWJvbE9iamVjdCI6eyJzeW1ib2wiOiJCSU1BUy5JUyIsInF1b3RlVHlwZSI6IkVRVUlUWSIsImV4Y2hhbmdlVGltZVpvbmUiOiJFdXJvcGUvSXN0YW5idWwiLCJwZXJpb2QxIjoxNDI3MDYxNjAwLCJwZXJpb2QyIjoxNzQ3MDk4MDAwfSwicGVyaW9kaWNpdHkiOjEsImludGVydmFsIjoid2VlayIsInRpbWVVbml0IjpudWxsfV0sInJhbmdlIjp7ImR0TGVmdCI6IjIwMjAtMDEtMTBUMjE6MDA6MDAuMDAwWiIsImR0UmlnaHQiOiIyMDIxLTA1LTEyVDIwOjU5OjAwLjAwMFoiLCJmb3JjZUxvYWQiOnRydWUsInBhZGRpbmciOjB9fSwiZXZlbnRzIjp7ImRpdnMiOnRydWUsInNwbGl0cyI6dHJ1ZSwidHJhZGluZ0hvcml6b24iOiJub25lIiwic2lnRGV2RXZlbnRzIjpbXX0sInByZWZlcmVuY2VzIjp7fX0=";
+    
+    // Token'daki sembol ve tarih bilgilerini güncelleyelim
+    // Not: Şu an için basit bir çözüm olarak doğrudan URL parametreleri kullanıyoruz
+    
+    // Yahoo Finance sayfası URL'i oluştur (JWT token ile)
+    return `https://finance.yahoo.com/chart/${yahooSymbol}?period1=${period1}&period2=${period2}&interval=1d&indicators=volume&includePrePost=false&lineType=line&chartType=candle&style=market&timeUuid=13f9c380-8d8c-11e7-8bf0-eb19db77d711&corsDomain=finance.yahoo.com&.tsrc=finance`;
+  }
+  
+  /* Artık kullanılmıyor - Sadece Yahoo Finance bağlantısı kullanılacak
+  // Investing.com URL'i oluştur (alternatif kaynak)
+  getInvestingChartURL(symbol) {
+    // BIST sembol kodunu ayıkla (.IS uzantısı atla)
+    const stockCode = symbol.replace('.IS', '');
+    
+    // Türkiye hisse senetleri için Investing.com sayfası
+    return `https://tr.investing.com/equities/${stockCode.toLowerCase()}-chart`;
+  }
+  */
+
   // Yahoo Finance API'den veri çeker
   async _fetchYahooFinanceData(symbol, startDate, endDate) {
     // BIST sembolleri için .IS uzantısı kontrol et
@@ -242,6 +298,88 @@ class DataFetcher {
     };
   }
 
+  // Yahoo Finance API'den günlük veri çeker
+  async _fetchYahooFinanceDailyData(symbol, startDate, endDate) {
+    // BIST sembolleri için .IS uzantısı kontrol et
+    const yahooSymbol = symbol.includes('.IS') ? symbol : `${symbol}.IS`;
+    
+    // Tarih aralıklarını Unix timestamp formatına çevir
+    const start = new Date(startDate || '2020-01-01');
+    const end = new Date(endDate || new Date());
+    const period1 = Math.floor(start.getTime() / 1000);
+    const period2 = Math.floor(end.getTime() / 1000);
+    
+    // API sınırlamaları nedeniyle bekleme ekle
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Yahoo Finance API URL'i oluştur - günlük veri için 1d interval
+    const url = `${this.baseUrl}${yahooSymbol}?period1=${period1}&period2=${period2}&interval=1d&events=history`;
+    
+    console.log(`Yahoo Finance API'ye istek yapılıyor: ${url}`);
+    
+    try {
+      // API'den veriyi çek
+      const response = await fetch(url, {
+        headers: {
+          // Tarayıcı gibi davranarak istek limiti aşma riskini azalt
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API yanıt vermedi: ${response.status} - ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      // Veriyi candlestick grafik formatına dönüştür
+      const data = [];
+      
+      if (result.chart && result.chart.result && result.chart.result.length > 0) {
+        const quotes = result.chart.result[0];
+        const timestamps = quotes.timestamp || [];
+        const opens = quotes.indicators.quote[0].open || [];
+        const highs = quotes.indicators.quote[0].high || [];
+        const lows = quotes.indicators.quote[0].low || [];
+        const closes = quotes.indicators.quote[0].close || [];
+        const volumes = quotes.indicators.quote[0].volume || [];
+        
+        // Her zaman damgası için fiyat bilgilerini hazırla
+        for (let i = 0; i < timestamps.length; i++) {
+          if (opens[i] !== null && closes[i] !== null && highs[i] !== null && lows[i] !== null) {
+            const date = new Date(timestamps[i] * 1000);
+            const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            
+            // Değişim yüzdesini hesapla (Günlük değişim)
+            let change = 0;
+            if (opens[i] !== 0) {
+              change = ((closes[i] - opens[i]) / opens[i] * 100);
+            }
+            
+            // OHLCV (Open, High, Low, Close, Volume) formatında veri ekle
+            data.push({
+              date: formattedDate,
+              open: opens[i],
+              high: highs[i],
+              low: lows[i],
+              close: closes[i],
+              volume: volumes[i] || 0,
+              change: parseFloat(change.toFixed(2))
+            });
+          }
+        }
+      }
+      
+      return {
+        symbol: yahooSymbol,
+        data
+      };
+    } catch (error) {
+      console.error(`Yahoo Finance API hatası: ${error.message}`);
+      throw error; // Üst fonksiyonda yakalanıp mock veri döndürülecek
+    }
+  }
+
   // Test amaçlı sahte veri oluşturur (API sorunu durumunda yedek)
   _generateMockData(symbol, startDate, endDate) {
     const data = [];
@@ -267,6 +405,97 @@ class DataFetcher {
       
       // Sonraki aya geç
       currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    
+    return {
+      symbol,
+      data
+    };
+  }
+
+  // Test amaçlı günlük sahte veri oluşturur (API sorunu durumunda yedek)
+  _generateDailyMockData(symbol, startDate, endDate) {
+    const data = [];
+    
+    // Başlangıç ve bitiş tarihlerini ayrıştır
+    const start = new Date(startDate || '2023-01-01');
+    const end = new Date(endDate || '2023-03-31');
+    
+    // Her gün için rasgele veri üret
+    const currentDate = new Date(start);
+    let previousClose = 100 + Math.random() * 50; // Başlangıç fiyatı
+    
+    // Trend yönü (pozitif = yükseliş, negatif = düşüş)
+    let trend = Math.random() > 0.5 ? 1 : -1;
+    let trendStrength = 0.01 + Math.random() * 0.02; // Trendin günlük etki gücü (% olarak)
+    let trendDays = 0;
+    let maxTrendDays = 5 + Math.floor(Math.random() * 10); // Bir trendin maksimum süresi (gün)
+    
+    while (currentDate <= end) {
+      // Hafta sonu değilse veri ekle (0: Pazar, 6: Cumartesi)
+      if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+        // Trend kontrolü
+        trendDays++;
+        if (trendDays > maxTrendDays) {
+          // Trendi değiştir
+          trend = -trend;
+          trendStrength = 0.01 + Math.random() * 0.02;
+          trendDays = 0;
+          maxTrendDays = 5 + Math.floor(Math.random() * 10);
+        }
+        
+        // Fiyat için baz değişim hesapla
+        let baseChange = trend * trendStrength;
+        
+        // Rasgele dalgalanma ekle (trendin %30-70'i kadar)
+        let randomNoise = (Math.random() * 0.4 + 0.3) * trendStrength * (Math.random() > 0.5 ? 1 : -1);
+        
+        // Toplam günlük değişim
+        const dailyChange = previousClose * (baseChange + randomNoise);
+        
+        // Açılış fiyatı - bazen önceki gün kapanışından farklı açılabilir
+        const open = previousClose + (dailyChange * 0.3 * (Math.random() > 0.7 ? -1 : 1));
+        
+        // Kapanış fiyatı
+        const close = previousClose + dailyChange;
+        
+        // Gün içi dalgalanma (fiyatın %0.2-%2'si kadar)
+        const volatility = previousClose * (0.002 + Math.random() * 0.018);
+        
+        // Yüksek ve düşük fiyatlar
+        const high = Math.max(open, close) + volatility;
+        const low = Math.min(open, close) - volatility;
+        
+        // Hacim (trend yönünde daha yüksek)
+        let volumeBase = 200000 + Math.random() * 800000;
+        const volume = Math.floor(volumeBase * (1 + Math.abs(baseChange) * 10)); // Trendin güçlü olduğu günlerde daha yüksek hacim
+        
+        // Formatlı tarih
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+        
+        // Değişim yüzdesini hesapla
+        const change = open !== 0 ? ((close - open) / open * 100) : 0;
+        
+        // Veriyi ekle
+        data.push({
+          date: formattedDate,
+          open: parseFloat(open.toFixed(2)),
+          high: parseFloat(high.toFixed(2)),
+          low: parseFloat(low.toFixed(2)),
+          close: parseFloat(close.toFixed(2)),
+          volume,
+          change: parseFloat(change.toFixed(2))
+        });
+        
+        // Sonraki gün için kapanış fiyatını güncelle
+        previousClose = close;
+      }
+      
+      // Sonraki güne geç
+      currentDate.setDate(currentDate.getDate() + 1);
     }
     
     return {

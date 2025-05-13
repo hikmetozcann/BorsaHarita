@@ -117,7 +117,7 @@ class StockCalendar {
           // Tıklama olayı ekle - ay ve yıl bilgisini fonksiyona aktar
           cell.addEventListener('click', () => {
             if (this.currentSymbol) {
-              this.showMonthDetailChart(year, month);
+              this.showMonthDetailChart(month, year);
             }
           });
         } else {
@@ -175,179 +175,169 @@ class StockCalendar {
   }
   
   // Tıklanan ay için detay sayfasını göster
-  async showMonthDetailChart(year, month) {
+  async showMonthDetailChart(month, year) {
     try {
       // Yükleme göstergesini göster
       document.getElementById('loadingSpinner').classList.remove('hidden');
       
+      // Önce ana sayfadaki görünümleri gizle
+      document.getElementById('defaultView').classList.add('hidden');
+      document.getElementById('resultsContainer').classList.add('hidden');
+      document.getElementById('stockDetailView').classList.add('hidden');
+      document.getElementById('monthlyAnalysisView').classList.add('hidden');
+      document.getElementById('recommendationsView').classList.add('hidden');
+      
       // Ay değişkenleri hesapla - seçilen ay, önceki ay ve sonraki ay
       let prevMonth = month - 1;
       let prevYear = year;
-      if (prevMonth < 1) {
-        prevMonth = 12;
-        prevYear -= 1;
-      }
-      
       let nextMonth = month + 1;
       let nextYear = year;
-      if (nextMonth > 12) {
-        nextMonth = 1;
-        nextYear += 1;
+      
+      // Ocak için önceki ay Aralık olmalı ve önceki yıl - 1
+      if (prevMonth === 0) {
+        prevMonth = 12;
+        prevYear--;
       }
       
-      // Tarihler için Date objesi oluştur
-      const startDateObj = new Date(prevYear, prevMonth - 1, 1);
-      const endDateObj = new Date(nextYear, nextMonth, 0);
+      // Aralık için sonraki ay Ocak olmalı ve sonraki yıl + 1
+      if (nextMonth === 13) {
+        nextMonth = 1;
+        nextYear++;
+      }
       
-      // Tarih formatları oluştur
-      const startDateStr = startDateObj.toISOString().split('T')[0];
-      const endDateStr = endDateObj.toISOString().split('T')[0];
+      // Tarih formatlarını oluştur (YYYY-MM)
+      const currentDate = `${year}-${month.toString().padStart(2, '0')}`;
+      const prevDate = `${prevYear}-${prevMonth.toString().padStart(2, '0')}`;
+      const nextDate = `${nextYear}-${nextMonth.toString().padStart(2, '0')}`;
       
-      // Yahoo Finance URL'i hazırla
-      const yahooUrl = window.dataFetcher.getYahooFinanceChartURL(
-        this.currentSymbol, 
-        startDateStr,
-        endDateStr
-      );
-      
-      // Modal oluştur
+      // Detay görünümünü oluştur
       const detailView = document.createElement('div');
-      detailView.className = 'fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50';
-      detailView.id = 'externalLinkModal';
+      detailView.id = 'monthDetailView';
+      detailView.className = 'bg-gray-900 p-6 rounded-lg shadow-xl max-w-4xl mx-auto';
       
-      // Ay isimleri
+      // Başlık ve geri butonu içeren üst bölüm
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'flex items-center mb-5';
+      
+      // Geri butonu
+      const backButton = document.createElement('button');
+      backButton.className = 'mr-3 p-2 rounded-full hover:bg-gray-800 transition-colors';
+      backButton.innerHTML = `
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+      `;
+      
+      // Geri butonuna tıklama olayı
+      backButton.addEventListener('click', () => {
+        detailView.remove();
+        // Önceki görünümleri geri getir
+        document.getElementById('stockDetailView').classList.remove('hidden');
+        document.getElementById('loadingSpinner').classList.add('hidden');
+      });
+      
+      // Başlık
+      const title = document.createElement('h2');
+      title.className = 'text-xl font-bold text-blue-100';
+      
       const monthNames = [
         'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
         'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
       ];
       
-      // Modal içeriği
-      detailView.innerHTML = `
-        <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full border border-gray-600 text-center">
-          <h2 class="text-xl font-bold text-blue-100 mb-4">${this.currentSymbol.replace('.IS', '')} - ${this.currentSymbolName}</h2>
-          <h3 class="text-lg text-gray-300 mb-6">${monthNames[month-1]} ${year} Detaylı Grafiği</h3>
-          
-          <p class="text-gray-300 mb-6">Detaylı mum grafiğini görüntülemek için Yahoo Finance'e yönlendirileceksiniz.</p>
-          
-          <div class="flex flex-col space-y-4">
-            <button id="openYahooBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-colors flex items-center justify-center">
-              <span class="mr-2">Yahoo Finance'de Görüntüle</span>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </button>
-          </div>
-          
-          <button id="closeModalBtn" class="mt-6 text-gray-400 hover:text-white transition-colors">
-            Kapat
-          </button>
-        </div>
-      `;
+      title.textContent = `${this.currentSymbol.replace('.IS', '')} - ${this.currentSymbolName}: ${monthNames[month-1]} ${year} Detaylı Analiz`;
       
-      // Modal'ı sayfaya ekle
-      document.body.appendChild(detailView);
+      headerDiv.appendChild(backButton);
+      headerDiv.appendChild(title);
+      detailView.appendChild(headerDiv);
       
-      // Olay dinleyicileri ekle
-      document.getElementById('openYahooBtn').addEventListener('click', () => {
-        if (window.api) {
-          window.api.openExternalLink(yahooUrl);
-        } else {
-          window.open(yahooUrl, '_blank');
-        }
-        document.getElementById('externalLinkModal').remove();
+      // Tarihler için Date objesi oluştur
+      const startDateObj = new Date(prevYear, prevMonth - 1, 1);
+      const endDateObj = new Date(nextYear, nextMonth, 0);
+      
+      // API'den günlük veri çek - son 3 ay için
+      const stockData = await window.dataFetcher.getStockDailyPerformance(
+        this.currentSymbol, 
+        startDateObj.toISOString().split('T')[0], 
+        endDateObj.toISOString().split('T')[0]
+      );
+      
+      // Grafik için canvas element
+      const chartContainer = document.createElement('div');
+      chartContainer.className = 'bg-gray-800/90 p-5 rounded-lg shadow-lg mb-6';
+      
+      const chartCanvas = document.createElement('canvas');
+      chartCanvas.id = 'monthDetailChart';
+      chartCanvas.width = 800;
+      chartCanvas.height = 400;
+      
+      chartContainer.appendChild(chartCanvas);
+      detailView.appendChild(chartContainer);
+      
+      // Ay bilgisini içeren tablo oluştur
+      const monthInfoDiv = document.createElement('div');
+      monthInfoDiv.className = 'grid grid-cols-1 md:grid-cols-3 gap-6 mb-8';
+      
+      // Önceki ay, seçilen ay ve sonraki ay bilgileri için kartlar oluştur
+      const months = [
+        { month: prevMonth, year: prevYear, label: 'Önceki Ay', class: 'from-blue-900/90 to-blue-800/90 border-blue-700/50 text-blue-300' },
+        { month: month, year: year, label: 'Seçilen Ay', class: 'from-green-900/90 to-green-800/90 border-green-700/50 text-green-300' },
+        { month: nextMonth, year: nextYear, label: 'Sonraki Ay', class: 'from-purple-900/90 to-purple-800/90 border-purple-700/50 text-purple-300' }
+      ];
+      
+      months.forEach(item => {
+        const card = document.createElement('div');
+        card.className = `bg-gradient-to-br ${item.class} rounded-lg p-5 text-white border shadow-lg transition-transform hover:scale-[1.01]`;
+        
+        const monthData = stockData.data.find(d => {
+          const [dataYear, dataMonth] = d.date.split('-');
+          return parseInt(dataYear) === item.year && parseInt(dataMonth) === item.month;
+        });
+        
+        const change = monthData ? monthData.change : 'Veri yok';
+        const changeText = monthData ? `${change > 0 ? '+' : ''}${change.toFixed(2)}%` : 'Veri yok';
+        const changeClass = monthData ? (change > 0 ? 'text-green-300' : (change < 0 ? 'text-red-300' : 'text-gray-300')) : 'text-gray-400';
+        
+        card.innerHTML = `
+          <div class="text-sm font-medium ${item.class} mb-1">${item.label}</div>
+          <div class="text-4xl font-bold ${changeClass}">${changeText}</div>
+          <div class="text-sm mt-1">${monthNames[item.month-1]} ${item.year}</div>
+        `;
+        
+        monthInfoDiv.appendChild(card);
       });
       
-      document.getElementById('closeModalBtn').addEventListener('click', () => {
-        document.getElementById('externalLinkModal').remove();
-      });
+      detailView.appendChild(monthInfoDiv);
       
+      // Ana içerik bölümüne ekle
+      document.querySelector('.flex.min-h-screen > .flex-1.p-6').appendChild(detailView);
+      
+      // Grafik verilerini hazırla
+      const chartData = this.prepare3MonthChartData(stockData);
+      
+      // Grafiği oluştur
+      this.create3MonthChart(chartCanvas, chartData);
+      
+      // Yükleme göstergesini gizle
       document.getElementById('loadingSpinner').classList.add('hidden');
-      
     } catch (error) {
-      console.error('Harici site yönlendirme hatası:', error);
+      console.error('3 aylık grafik gösterimi sırasında hata:', error);
       alert(`Hata: ${error.message}`);
       document.getElementById('loadingSpinner').classList.add('hidden');
     }
   }
   
-  // Ekran boyutuna göre optimal hücre boyutunu hesapla
-  calculateOptimalCellSize(yearCount) {
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-    
-    // Sidebar, başlıklar ve diğer UI elemanları için alan bırak
-    const availableHeight = viewportHeight - 260; // header, footer, başlıklar için yaklaşık 260px
-    const availableWidth = viewportWidth - 360; // sidebar ve kenar boşlukları için yaklaşık 360px
-    
-    // Yıl sayısı + başlık satırı, her satır için yükseklik belirle
-    const rowCount = yearCount + 1;
-    const maxHeightPerCell = Math.floor(availableHeight / rowCount) - 4; // Satır boşlukları için 4px düş
-    
-    // 12 ay + yıl sütunu, her sütun için genişlik belirle
-    const columnCount = 13;
-    const maxWidthPerCell = Math.floor(availableWidth / columnCount) - 4; // Sütun boşlukları için 4px düş
-    
-    // Kare hücreler için en küçük değeri seç, minimum 35px maksimum 65px olacak şekilde
-    return Math.min(Math.max(Math.min(maxHeightPerCell, maxWidthPerCell), 35), 65);
-  }    
-  
-  // Pencere yeniden boyutlandırıldığında takvimi güncelle
-  setupResizeListener() {
-    const updateCalendarSize = () => {
-      const performanceMapContainer = document.getElementById('performanceMapContainer');
-      if (performanceMapContainer) {
-        // Yeniden render edilmeli, sadece hücre boyutlarını güncellemek yetersiz
-        const gridRows = performanceMapContainer.querySelectorAll('.grid');
-        if (gridRows.length > 0) {
-          const yearCount = gridRows.length - 1; // Başlık satırı hariç
-          const newSize = this.calculateOptimalCellSize(yearCount);
-          
-          // Tüm satırların grid-template-columns değerlerini güncelle
-          gridRows.forEach(row => {
-            row.style.gridTemplateColumns = `55px repeat(12, ${newSize}px)`;
-          });
-          
-          // Tüm hücrelerin boyutlarını güncelle
-          const gridCells = performanceMapContainer.querySelectorAll('.grid > div:not(:first-child)');
-          gridCells.forEach(cell => {
-            cell.style.width = `${newSize}px`;
-            cell.style.height = `${newSize}px`;
-          });
-          
-          // İlk hücrelerin (yıl sütunu) genişliğini güncelle
-          const yearCells = performanceMapContainer.querySelectorAll('.grid > div:first-child');
-          yearCells.forEach(cell => {
-            cell.style.width = '55px'; // Yıl sütununu sabit genişlikte tut
-          });
-        }
-      }
-    };
-    
-    // Varsa eski dinleyiciyi kaldır
-    if (this.resizeListener) {
-      window.removeEventListener('resize', this.resizeListener);
-    }
-    
-    // Yeni dinleyiciyi ekle
-    this.resizeListener = updateCalendarSize;
-    window.addEventListener('resize', this.resizeListener);
-  }
-  
-  /* API sınırlamaları nedeniyle kullanımdan kaldırıldı
   // 3 aylık grafik için veri hazırlama
   prepare3MonthChartData(stockData) {
     if (!stockData.data || stockData.data.length === 0) {
       return { datasets: [] };
     }
     
-    // Verileri tarihe göre sırala
-    const sortedData = [...stockData.data].sort((a, b) => new Date(a.date) - new Date(b.date));
-    
     // Tarihleri ayır (kategori ekseni için)
-    const labels = sortedData.map(item => item.date);
+    const labels = stockData.data.map(item => item.date);
     
     // OHLC (Open, High, Low, Close) verilerini candlestick formatına getir
-    const ohlcData = sortedData.map(item => ({
+    const ohlcData = stockData.data.map(item => ({
       x: item.date,
       o: item.open,
       h: item.high,
@@ -356,13 +346,45 @@ class StockCalendar {
     }));
     
     // Günlük hacim verileri
-    const volumes = sortedData.map(item => ({
+    const volumes = stockData.data.map(item => ({
       x: item.date,
       y: item.volume
     }));
     
     // Mum rengi için (yeşil-kırmızı)
-    const colors = sortedData.map(item => 
+    const colors = stockData.data.map(item => 
+      item.close >= item.open ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)'
+    );
+    
+    // Chart.js için veri nesnesi oluştur
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'OHLC', 
+          type: 'candlestick',
+          data: ohlcData,
+          color: {
+            up: 'rgb(34, 197, 94)',   // Yeşil
+            down: 'rgb(239, 68, 68)',  // Kırmızı
+            unchanged: 'rgb(156, 163, 175)' // Gri
+          }
+        },
+        {
+          label: 'Hacim',
+          type: 'bar',
+          backgroundColor: colors.map(color => color === 'rgb(34, 197, 94)' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'),
+          borderColor: colors,
+          borderWidth: 1,
+          data: volumes,
+          yAxisID: 'volume'
+        }
+      ]
+    };
+  }
+    
+    // Mum rengi için (yeşil-kırmızı)
+    const colors = stockData.data.map(item => 
       item.close >= item.open ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)'
     );
     
@@ -395,10 +417,15 @@ class StockCalendar {
   
   // 3 aylık detay grafiği oluştur
   create3MonthChart(chartCanvas, chartData) {
-    // Chart.js kütüphanesini kontrol et
+    // Chart.js kütüphanesini kontrol et ve candlestick eklentisini dahil et
     if (!window.Chart) {
       console.error("Chart.js yüklenmemiş!");
       return null;
+    }
+    
+    // Candlestick eklentisini kaydet (eğer yüklü değilse)
+    if (typeof window.chartjs_chart_financial !== 'undefined') {
+      window.Chart.register(window.chartjs_chart_financial);
     }
     
     // Chart.js yapılandırması
@@ -548,7 +575,69 @@ class StockCalendar {
       return null;
     }
   }
-  */
+  
+  // Ekran boyutuna göre optimal hücre boyutunu hesapla
+  calculateOptimalCellSize(yearCount) {
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    
+    // Sidebar, başlıklar ve diğer UI elemanları için alan bırak
+    const availableHeight = viewportHeight - 260; // header, footer, başlıklar için yaklaşık 260px
+    const availableWidth = viewportWidth - 360; // sidebar ve kenar boşlukları için yaklaşık 360px
+    
+    // Yıl sayısı + başlık satırı, her satır için yükseklik belirle
+    const rowCount = yearCount + 1;
+    const maxHeightPerCell = Math.floor(availableHeight / rowCount) - 4; // Satır boşlukları için 4px düş
+    
+    // 12 ay + yıl sütunu, her sütun için genişlik belirle
+    const columnCount = 13;
+    const maxWidthPerCell = Math.floor(availableWidth / columnCount) - 4; // Sütun boşlukları için 4px düş
+    
+    // Kare hücreler için en küçük değeri seç, minimum 35px maksimum 65px olacak şekilde
+    return Math.min(Math.max(Math.min(maxHeightPerCell, maxWidthPerCell), 35), 65);
+  }    
+  
+  // Pencere yeniden boyutlandırıldığında takvimi güncelle
+  setupResizeListener() {
+    const updateCalendarSize = () => {
+      const performanceMapContainer = document.getElementById('performanceMapContainer');
+      if (performanceMapContainer) {
+        // Yeniden render edilmeli, sadece hücre boyutlarını güncellemek yetersiz
+        const gridRows = performanceMapContainer.querySelectorAll('.grid');
+        if (gridRows.length > 0) {
+          const yearCount = gridRows.length - 1; // Başlık satırı hariç
+          const newSize = this.calculateOptimalCellSize(yearCount);
+          
+          // Tüm satırların grid-template-columns değerlerini güncelle
+          gridRows.forEach(row => {
+            row.style.gridTemplateColumns = `55px repeat(12, ${newSize}px)`;
+          });
+          
+          // Tüm hücrelerin boyutlarını güncelle
+          const gridCells = performanceMapContainer.querySelectorAll('.grid > div:not(:first-child)');
+          gridCells.forEach(cell => {
+            cell.style.width = `${newSize}px`;
+            cell.style.height = `${newSize}px`;
+          });
+          
+          // İlk hücrelerin (yıl sütunu) genişliğini güncelle
+          const yearCells = performanceMapContainer.querySelectorAll('.grid > div:first-child');
+          yearCells.forEach(cell => {
+            cell.style.width = '55px'; // Yıl sütununu sabit genişlikte tut
+          });
+        }
+      }
+    };
+    
+    // Varsa eski dinleyiciyi kaldır
+    if (this.resizeListener) {
+      window.removeEventListener('resize', this.resizeListener);
+    }
+    
+    // Yeni dinleyiciyi ekle
+    this.resizeListener = updateCalendarSize;
+    window.addEventListener('resize', this.resizeListener);
+  }
 }
 
 // Global nesne olarak dışa aktar

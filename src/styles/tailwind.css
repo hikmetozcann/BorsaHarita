@@ -26,3 +26,20 @@
 .calendar-wrapper {
   @apply relative overflow-x-auto;
 }
+
+/* Özel scrollbar stillerini düzenle */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-blue-600 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-blue-700;
+}

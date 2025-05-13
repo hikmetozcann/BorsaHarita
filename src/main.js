@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, net } = require('electron');
+const { app, BrowserWindow, ipcMain, net, shell } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 
@@ -8,7 +8,7 @@ const store = new Store();
 function createWindow() {
   // Tarayıcı penceresini oluştur
   const mainWindow = new BrowserWindow({
-    width: 1200,
+    width: 1300,
     height: 800,
     webPreferences: {
       nodeIntegration: false,
@@ -110,5 +110,15 @@ ipcMain.handle('get-stock-data', async (event, symbol, startDate, endDate) => {
   } catch (error) {
     console.error('Hisse verisi alınırken hata:', error);
     throw error;
+  }
+});
+
+// Harici URL'leri açmak için IPC dinleyicisi
+ipcMain.on('open-external-link', (event, url) => {
+  // URL'in güvenli olduğundan emin ol (https protokolü kontrolü)
+  if (url.startsWith('https://')) {
+    shell.openExternal(url);
+  } else {
+    console.error('Güvenli olmayan URL açılmaya çalışıldı:', url);
   }
 });

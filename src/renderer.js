@@ -1,5 +1,23 @@
 // renderer.js - Ana uygulama mantığı
 document.addEventListener('DOMContentLoaded', () => {
+  // Chart.js için gerekli modülleri yükle
+  if (window.Chart) {
+    // Chart.js için gerekli yerel modülleri import et (eğer yüklüyse)
+    try {
+      // CDN üzerinden yüklenen modüller global objeler oluşturur
+      if (window.chartjs_chart_financial) {
+        window.Chart.register(window.chartjs_chart_financial);
+        console.log('Candlestick grafiği modülü başarıyla yüklendi (CDN)');
+      }
+      if (window.adapters && window.adapters.dateFns) {
+        window.Chart.register(window.adapters.dateFns);
+        console.log('Date-fns adaptörü başarıyla yüklendi (CDN)');
+      }
+    } catch (error) {
+      console.error('Chart.js eklentileri yüklenirken hata:', error);
+    }
+  }
+  
   // DOM elementlerini seç
   const stockSymbolSelect = document.getElementById('stockSymbol');
   const startDateInput = document.getElementById('startDate');
@@ -94,6 +112,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Sidebar için hisse senedi listesini doldur
   populateSidebarStockList();
   
+  // Pencere yeniden boyutlandığında öğeleri güncelle
+  window.addEventListener('resize', function() {
+    adjustUIForScreenSize();
+  });
+  
+  // Sayfa yüklendiğinde UI elemanlarını ayarla
+  adjustUIForScreenSize();
+  
   // Arama kutusuna olay dinleyicisi ekle
   stockSearch.addEventListener('input', filterStockList);
   
@@ -138,22 +164,22 @@ document.addEventListener('DOMContentLoaded', () => {
     
     stocks.forEach(stock => {
       const stockItem = document.createElement('div');
-      stockItem.className = 'p-2 my-1 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors flex items-center';
+      stockItem.className = 'p-2.5 my-1 rounded-lg cursor-pointer hover:bg-gray-800/80 transition-all flex items-center group border border-transparent hover:border-gray-700 hover:shadow-lg';
       stockItem.dataset.symbol = stock.symbol;
       
       const stockIcon = document.createElement('div');
-      stockIcon.className = 'w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center mr-2 flex-shrink-0';
+      stockIcon.className = 'w-9 h-9 rounded-full bg-blue-600/90 flex items-center justify-center mr-3 flex-shrink-0 text-white font-semibold group-hover:bg-blue-500 transition-colors shadow-sm';
       stockIcon.textContent = stock.symbol.substring(0, 2).toUpperCase();
       
       const stockInfo = document.createElement('div');
       stockInfo.className = 'flex-1 overflow-hidden';
       
       const stockSymbol = document.createElement('div');
-      stockSymbol.className = 'font-medium text-white text-sm';
+      stockSymbol.className = 'font-medium text-white text-sm group-hover:text-blue-300 transition-colors';
       stockSymbol.textContent = stock.symbol.replace('.IS', '');
       
       const stockName = document.createElement('div');
-      stockName.className = 'text-gray-400 text-xs truncate';
+      stockName.className = 'text-gray-400 text-xs truncate group-hover:text-gray-300 transition-colors';
       stockName.textContent = stock.name;
       
       stockInfo.appendChild(stockSymbol);
@@ -461,19 +487,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const stockData = await window.dataFetcher.getStockMonthlyPerformance(symbol, detailStartDate, formattedDate);
       
       // Hisse adını göster
-      detailStockTitle.textContent = `${symbol.replace('.IS', '')} - ${name} (1 Ocak 2025'ten Bugüne)`;
+      const today = new Date();
+      detailStockTitle.textContent = `${symbol.replace('.IS', '')} - ${name} (1 Ocak 2015'ten Bugüne)`;
       
       // Veriyi takvim görünümü için organize et
       const organizedData = window.stockAnalyzer.organizeDataByYearMonth(stockData);
       
+      // Mevcut hisse bilgisini takvim bileşenine aktar
+      detailCalendar.setCurrentStock(symbol, name);
+      
       // Takvim görünümünü oluştur
       detailCalendar.renderCalendar(organizedData);
-      
-      // Grafik verilerini hazırla
-      const chartData = window.stockAnalyzer.prepareChartData(stockData);
-      
-      // Grafiği oluştur
-      window.stockAnalyzer.createChart(detailPerformanceChartCanvas, chartData);
       
       // Performans özetini oluştur ve göster
       updateDetailPerformanceSummary(stockData);
@@ -543,6 +567,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const selectedStockName = stockSymbolSelect.options[stockSymbolSelect.selectedIndex].text;
       stockTitle.textContent = `${selectedStockName} Aylık Performans Analizi`;
       
+      // Mevcut hisse bilgisini takvim bileşenine aktar
+      calendar.setCurrentStock(symbol, selectedStockName.split(' - ')[1]);
+      
       // Veriyi takvim görünümü için organize et
       const organizedData = window.stockAnalyzer.organizeDataByYearMonth(stockData);
       
@@ -591,5 +618,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ortalama değişim
     const avgChangePrefix = summary.averageChange >= 0 ? '+' : '';
     averageChangeElement.textContent = `${avgChangePrefix}${summary.averageChange.toFixed(2)}%`;
+  }
+  
+  // UI elemanlarını ekran boyutuna göre ayarla
+  function adjustUIForScreenSize() {
+    // Performans haritaları konteynerlerinin boyutlarını güncelle
+    const performanceMapContainers = document.querySelectorAll('#performanceMapContainer');
+    
+    performanceMapContainers.forEach(container => {
+      // Hangi görünüme ait olduğunu belirle
+      const isDetailView = container.closest('div').id.includes('detail');
+      const calendarInstance = isDetailView ? detailCalendar : calendar;
+      
+      if (calendarInstance) {
+        // Takvimi yeniden oluşturmak yerine, sadece boyutları güncelle
+        const gridRows = container.querySelectorAll('.grid');
+        if (gridRows.length > 0) {
+          const yearCount = gridRows.length - 1; // Başlık satırını çıkar
+          const newSize = calendarInstance.calculateOptimalCellSize(yearCount);
+          
+          // Tüm satırların grid-template-columns değerlerini güncelle
+          gridRows.forEach(row => {
+            row.style.gridTemplateColumns = `40px repeat(12, ${newSize}px)`;
+          });
+          
+          // Tüm hücrelerin boyutlarını güncelle
+          const gridCells = container.querySelectorAll('.grid > div:not(:first-child)');
+          gridCells.forEach(cell => {
+            cell.style.width = `${newSize}px`;
+            cell.style.height = `${newSize}px`;
+          });
+        }
+      }
+    });
   }
 });

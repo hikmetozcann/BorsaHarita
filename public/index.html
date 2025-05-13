@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-900 text-white font-nunito">
+<body class="bg-gray-900 text-white font-nunito custom-scrollbar">
   <div class="flex min-h-screen">
     <!-- Sidebar -->
     <div class="w-72 bg-gray-900 border-r border-gray-100/20 p-4 flex flex-col h-screen">
@@ -47,7 +47,7 @@
       
       <!-- Arama kutusu -->
       <div class="relative mb-4">
-        <input type="text" id="stockSearch" placeholder="Hisse ara..." class="w-full bg-gray-700 text-white px-3 py-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all placeholder-blue-300/70 text-blue-300/70">
+        <input type="text" id="stockSearch" placeholder="Hisse ara..." class="w-full bg-gray-700/90 text-white px-3 py-3 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-blue-300/70 text-blue-300/70 border border-transparent focus:border-blue-500/30 shadow-inner">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <svg class="w-5 h-5 text-blue-300/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -61,7 +61,7 @@
       </div>
       
       <!-- Hisse listesi -->
-      <div id="stockList" class="flex-1 overflow-y-auto pr-1 space-y-1 custom-scrollbar">
+      <div id="stockList" class="flex-1 overflow-y-auto pr-1 space-y-1.5 custom-scrollbar">
         <!-- Bu alan dinamik olarak doldurulacak -->
       </div>
     </div>
@@ -81,16 +81,16 @@
       
       <!-- Varsayılan görünüm -->
       <div id="defaultView">
-        <h1 class="text-2xl font-bold mb-6">Borsa İstanbul Hisse Performans Analizi</h1>
+        <h1 class="text-2xl font-bold mb-6 text-blue-50">Borsa İstanbul Hisse Performans Analizi</h1>
         
-        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-6">
-          <h2 class="text-lg font-semibold mb-4">Analiz Kriterleri</h2>
+        <div class="bg-gray-800/90 p-6 rounded-lg shadow-lg mb-6 border border-gray-700/50">
+          <h2 class="text-lg font-semibold mb-4 text-blue-100">Analiz Kriterleri</h2>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Hisse senedi seçimi -->
             <div>
               <label for="stockSymbol" class="block text-sm font-medium text-gray-300 mb-2">Hisse Senedi</label>
-              <select id="stockSymbol" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 appearance-none">
+              <select id="stockSymbol" class="w-full px-4 py-3 rounded-lg bg-gray-700/90 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 appearance-none border border-gray-600/50 shadow-inner hover:bg-gray-700 transition-colors">
                 <option value="">-- Hisse Senedi Seçin --</option>
                 <!-- Bu alan dinamik olarak doldurulacak -->
               </select>
@@ -99,19 +99,19 @@
             <!-- Başlangıç tarihi -->
             <div>
               <label for="startDate" class="block text-sm font-medium text-gray-300 mb-2">Başlangıç Tarihi</label>
-              <input type="text" id="startDate" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500">
+              <input type="text" id="startDate" class="w-full px-4 py-3 rounded-lg bg-gray-700/90 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 border border-gray-600/50 shadow-inner hover:bg-gray-700 transition-colors">
             </div>
             
             <!-- Bitiş tarihi -->
             <div>
               <label for="endDate" class="block text-sm font-medium text-gray-300 mb-2">Bitiş Tarihi</label>
-              <input type="text" id="endDate" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500">
+              <input type="text" id="endDate" class="w-full px-4 py-3 rounded-lg bg-gray-700/90 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 border border-gray-600/50 shadow-inner hover:bg-gray-700 transition-colors">
             </div>
           </div>
           
           <!-- Analiz butonu -->
           <div class="mt-4 flex justify-center">
-            <button id="analyzeBtn" class="mt-4 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium py-3 px-4 rounded-lg shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+            <button id="analyzeBtn" class="mt-4 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium py-3 px-6 rounded-lg shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 border border-blue-800/50">
               Performans Analizi Yap
             </button>
           </div>
@@ -120,30 +120,30 @@
       
       <!-- Sonuçlar konteyner -->
       <div id="resultsContainer" class="hidden transition-opacity duration-300 ease-in-out">
-        <div class="flex items-center mb-4">
-          <h2 id="stockTitle" class="text-xl font-bold">Hisse Senedi Performans Analizi</h2>
+        <div class="flex items-center mb-5">
+          <h2 id="stockTitle" class="text-xl font-bold text-blue-100">Hisse Senedi Performans Analizi</h2>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <!-- En Yüksek Artış -->
-          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-black">
-            <div class="text-sm font-medium text-green-800 mb-1">En Yüksek Artış</div>
-            <div id="highestGain" class="text-4xl font-bold text-green-700">+0.00%</div>
-            <div id="highestGainMonth" class="text-sm text-green-600">-</div>
+          <div class="bg-gradient-to-br from-green-900/90 to-green-800/90 rounded-lg p-5 text-white border border-green-700/50 shadow-lg transition-transform hover:scale-[1.01]">
+            <div class="text-sm font-medium text-green-200 mb-1">En Yüksek Artış</div>
+            <div id="highestGain" class="text-4xl font-bold text-green-100">+0.00%</div>
+            <div id="highestGainMonth" class="text-sm text-green-300 mt-1">-</div>
           </div>
           
           <!-- En Yüksek Düşüş -->
-          <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-black">
-            <div class="text-sm font-medium text-red-800 mb-1">En Yüksek Düşüş</div>
-            <div id="highestLoss" class="text-4xl font-bold text-red-700">-0.00%</div>
-            <div id="highestLossMonth" class="text-sm text-red-600">-</div>
+          <div class="bg-gradient-to-br from-red-900/90 to-red-800/90 rounded-lg p-5 text-white border border-red-700/50 shadow-lg transition-transform hover:scale-[1.01]">
+            <div class="text-sm font-medium text-red-200 mb-1">En Yüksek Düşüş</div>
+            <div id="highestLoss" class="text-4xl font-bold text-red-100">-0.00%</div>
+            <div id="highestLossMonth" class="text-sm text-red-300 mt-1">-</div>
           </div>
           
           <!-- Ortalama Değişim -->
-          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-black">
-            <div class="text-sm font-medium text-blue-800 mb-1">Ortalama Değişim</div>
-            <div id="averageChange" class="text-4xl font-bold text-blue-700">0.00%</div>
-            <div class="text-sm text-blue-600">Tüm dönem</div>
+          <div class="bg-gradient-to-br from-blue-900/90 to-blue-800/90 rounded-lg p-5 text-white border border-blue-700/50 shadow-lg transition-transform hover:scale-[1.01]">
+            <div class="text-sm font-medium text-blue-200 mb-1">Ortalama Değişim</div>
+            <div id="averageChange" class="text-4xl font-bold text-blue-100">0.00%</div>
+            <div class="text-sm text-blue-300 mt-1">Tüm dönem</div>
           </div>
         </div>
         
@@ -160,41 +160,36 @@
       
       <!-- Detay görünümü -->
       <div id="stockDetailView" class="hidden">
-        <div class="flex items-center mb-4">
-          <button id="backToMainBtn" class="mr-2 p-1 rounded-full hover:bg-gray-800 transition-colors">
+        <div class="flex items-center mb-5">
+          <button id="backToMainBtn" class="mr-3 p-2 rounded-full hover:bg-gray-800 transition-colors">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
           </button>
-          <h2 id="detailStockTitle" class="text-xl font-bold">Hisse Detayı</h2>
+          <h2 id="detailStockTitle" class="text-xl font-bold text-blue-100">Hisse Detayı</h2>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <!-- En Yüksek Artış -->
-          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-black">
-            <div class="text-sm font-medium text-green-800 mb-1">En Yüksek Artış</div>
-            <div id="detailHighestGain" class="text-4xl font-bold text-green-700">+0.00%</div>
-            <div id="detailHighestGainMonth" class="text-sm text-green-600">-</div>
+          <div class="bg-gradient-to-br from-green-900/90 to-green-800/90 rounded-lg p-5 text-white border border-green-700/50 shadow-lg transition-transform hover:scale-[1.01]">
+            <div class="text-sm font-medium text-green-200 mb-1">En Yüksek Artış</div>
+            <div id="detailHighestGain" class="text-4xl font-bold text-green-100">+0.00%</div>
+            <div id="detailHighestGainMonth" class="text-sm text-green-300 mt-1">-</div>
           </div>
           
           <!-- En Yüksek Düşüş -->
-          <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-black">
-            <div class="text-sm font-medium text-red-800 mb-1">En Yüksek Düşüş</div>
-            <div id="detailHighestLoss" class="text-4xl font-bold text-red-700">-0.00%</div>
-            <div id="detailHighestLossMonth" class="text-sm text-red-600">-</div>
+          <div class="bg-gradient-to-br from-red-900/90 to-red-800/90 rounded-lg p-5 text-white border border-red-700/50 shadow-lg transition-transform hover:scale-[1.01]">
+            <div class="text-sm font-medium text-red-200 mb-1">En Yüksek Düşüş</div>
+            <div id="detailHighestLoss" class="text-4xl font-bold text-red-100">-0.00%</div>
+            <div id="detailHighestLossMonth" class="text-sm text-red-300 mt-1">-</div>
           </div>
           
           <!-- Ortalama Değişim -->
-          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-black">
-            <div class="text-sm font-medium text-blue-800 mb-1">Ortalama Değişim</div>
-            <div id="detailAverageChange" class="text-4xl font-bold text-blue-700">0.00%</div>
-            <div class="text-sm text-blue-600">Tüm dönem</div>
+          <div class="bg-gradient-to-br from-blue-900/90 to-blue-800/90 rounded-lg p-5 text-white border border-blue-700/50 shadow-lg transition-transform hover:scale-[1.01]">
+            <div class="text-sm font-medium text-blue-200 mb-1">Ortalama Değişim</div>
+            <div id="detailAverageChange" class="text-4xl font-bold text-blue-100">0.00%</div>
+            <div class="text-sm text-blue-300 mt-1">Tüm dönem</div>
           </div>
-        </div>
-        
-        <!-- Grafik bölümü -->
-        <div class="bg-white rounded-lg p-4 mb-6">
-          <canvas id="detailPerformanceChart" class="w-full" height="300"></canvas>
         </div>
         
         <!-- Takvim görünümü -->
@@ -339,6 +334,8 @@
 
   <!-- jQuery ve diğer JS kütüphaneleri -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
   
