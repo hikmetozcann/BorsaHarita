@@ -16,8 +16,8 @@ BorsaHarita, Borsa İstanbul (BIST) hisselerinin aylık performansını analiz e
 
 ### İndirme Linkleri
 
-- [macOS](https://github.com/hikmetozcann/BorsaHarita/release/borsa-analiz-app-1.0.0-arm64.dmg)
-- [Windows](https://github.com/hikmetozcann/BorsaHarita/release/borsa-analiz-app-Setup-1.0.0.exe)
+- [macOS](https://github.com/hikmetozcann/BorsaHarita/blob/main/release/borsa-analiz-app-1.0.0-arm64.dmg)
+- [Windows](https://github.com/hikmetozcann/BorsaHarita/blob/main/release/borsa-analiz-app-Setup-1.0.0.exe)
 
 ### Elle Kurulum
 
